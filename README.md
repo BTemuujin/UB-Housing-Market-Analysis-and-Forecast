@@ -4,8 +4,6 @@ This repository scrapes public Unegui.mn apartment listings for Ulaanbaatar, nor
 
 The project is built for reproducible analysis rather than one-off spreadsheets. The checked-in files are the scripts and documentation. Generated CSV, XLSX, HTML, ZIP, PDF, and download folders are intentionally excluded from version control.
 
-All commands below assume the `base` conda environment is active.
-
 ## Snapshot
 
 ### Ulaanbaatar price map
@@ -76,10 +74,9 @@ The current full-scrape workflow produces these main files:
 
 ## Reproducible Workflow
 
-### 1. Activate `base` and install dependencies
+### 1. Install dependencies
 
 ```bash
-conda activate base
 python -m pip install -r requirements.txt
 ```
 
@@ -127,7 +124,7 @@ The HTML report includes:
 python build_readme_assets.py --map-html unegui_ub_all_stats_apartment_price_per_sqm_map.html
 ```
 
-If Chrome is not already available to Kaleido in your `base` environment, pass `--chrome-path /path/to/chrome` so the map cover is rendered from the HTML export instead of falling back to the schematic version.
+If Chrome is not already available to Kaleido in your environment, pass `--chrome-path /path/to/chrome` so the map cover is rendered from the HTML export instead of falling back to the schematic version.
 
 This writes:
 
@@ -166,8 +163,6 @@ python -m pip install -r requirements.txt
 Энэ репозитор нь Улаанбаатар дахь Unegui.mn-ийн орон сууцны заруудыг татаж, өгөгдлийг цэвэрлэн нэгтгэж, үнэ болон байршлын статистик тооцоолж, 5 жилийн нэрлэсэн MNT-ийн төсөөлөл гарган, бодит зураг болон газрын зурагтай топ-10 жагсаалт үүсгэнэ.
 
 Энэ төсөл нь нэг удаагийн хүснэгтээс илүү дахин ажиллуулах боломжтой шинжилгээнд зориулагдсан. Репод зөвхөн скрипт болон баримт бичиг хадгална. Үүсгэсэн CSV, XLSX, HTML, ZIP, PDF болон татсан өгөгдлийн хавтаснуудыг git-д оруулахгүй.
-
-Доорх бүх командыг `base` conda орчинд ажиллуулна.
 
 ## Хураангуй зураг
 
@@ -239,10 +234,9 @@ Full-scrape workflow дараах үндсэн файлуудыг үүсгэнэ
 
 ## Дахин ажиллуулах workflow
 
-### 1. `base` орчныг идэвхжүүлж, dependency суулгах
+### 1. Dependency суулгах
 
 ```bash
-conda activate base
 python -m pip install -r requirements.txt
 ```
 
@@ -290,7 +284,7 @@ HTML report-д дараах зүйлс орно:
 python build_readme_assets.py --map-html unegui_ub_all_stats_apartment_price_per_sqm_map.html
 ```
 
-Хэрэв `base` орчинд Kaleido-д зориулсан Chrome бэлэн биш бол `--chrome-path /path/to/chrome` нэмнэ. Ингэснээр cover map нь HTML export-оос шууд render хийгдэнэ; эс бөгөөс schematic хувилбар руу fallback хийнэ.
+Хэрэв таны орчинд Kaleido-д зориулсан Chrome бэлэн биш бол `--chrome-path /path/to/chrome` нэмнэ. Ингэснээр cover map нь HTML export-оос шууд render хийгдэнэ; эс бөгөөс schematic хувилбар руу fallback хийнэ.
 
 Энэ алхам дараах файлуудыг бичнэ:
 
