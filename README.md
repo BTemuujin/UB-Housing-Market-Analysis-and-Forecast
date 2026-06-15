@@ -148,18 +148,3 @@ Install them with:
 ```bash
 python3 -m pip install -r requirements.txt
 ```
-
-## GitHub Publishing
-
-To publish this repository after cloning or creating it locally:
-
-```bash
-git init
-git add .
-git commit -m "Initial Unegui UB analysis repo"
-git branch -M main
-git remote add origin <your-github-repo-url>
-git push -u origin main
-```
-
-The generated data and report folders stay out of git because they can be rebuilt from the scripts.
