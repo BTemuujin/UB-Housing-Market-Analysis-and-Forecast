@@ -11,7 +11,7 @@ All commands below assume the `base` conda environment is active.
 ### Ulaanbaatar price map
 ![Ulaanbaatar median price map](assets/ub_median_price_map.png)
 
-The cover map is exported from the real Plotly HTML map output and shows median asking price per sqm by region on top of the actual Ulaanbaatar map.
+The cover map is exported from the real Plotly HTML map output and is fit to the data extent so it only shows the regions with listings.
 
 ### Forecast shortlist
 ![Forecast shortlist](assets/ub_top10_forecast.png)

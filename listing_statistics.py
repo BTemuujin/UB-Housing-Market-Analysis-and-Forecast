@@ -108,6 +108,18 @@ def create_price_map(region_df: pd.DataFrame, output_path: str | Path, title: st
         raise SystemExit("No mappable regions after filtering.")
 
     map_df["marker_size"] = map_df["listings"].clip(lower=5, upper=80)
+    lon_min = float(map_df["longitude"].min())
+    lon_max = float(map_df["longitude"].max())
+    lat_min = float(map_df["latitude"].min())
+    lat_max = float(map_df["latitude"].max())
+    lon_pad = max(0.004, (lon_max - lon_min) * 0.08)
+    lat_pad = max(0.004, (lat_max - lat_min) * 0.08)
+    bounds = {
+        "west": lon_min - lon_pad,
+        "east": lon_max + lon_pad,
+        "south": lat_min - lat_pad,
+        "north": lat_max + lat_pad,
+    }
     fig = px.scatter_mapbox(
         map_df,
         lat="latitude",
@@ -130,12 +142,11 @@ def create_price_map(region_df: pd.DataFrame, output_path: str | Path, title: st
             "marker_size": False,
             "median_price_per_sqm": False,
         },
-        zoom=10,
-        center={"lat": 47.918873, "lon": 106.917701},
         title=title,
     )
     fig.update_layout(
         mapbox_style=GRAYSCALE_MAP_STYLE,
+        mapbox={"bounds": bounds},
         coloraxis_colorbar_title="Median ₮/sqm",
         margin={"r": 0, "t": 48, "l": 0, "b": 0},
         height=820,
