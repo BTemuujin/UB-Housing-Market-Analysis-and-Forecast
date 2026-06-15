@@ -156,5 +156,168 @@ This writes:
 Install them with:
 
 ```bash
-python3 -m pip install -r requirements.txt
+python -m pip install -r requirements.txt
+```
+
+---
+
+## Монгол хувилбар
+
+Энэ репозитор нь Улаанбаатар дахь Unegui.mn-ийн орон сууцны заруудыг татаж, өгөгдлийг цэвэрлэн нэгтгэж, үнэ болон байршлын статистик тооцоолж, 5 жилийн нэрлэсэн MNT-ийн төсөөлөл гарган, бодит зураг болон газрын зурагтай топ-10 жагсаалт үүсгэнэ.
+
+Энэ төсөл нь нэг удаагийн хүснэгтээс илүү дахин ажиллуулах боломжтой шинжилгээнд зориулагдсан. Репод зөвхөн скрипт болон баримт бичиг хадгална. Үүсгэсэн CSV, XLSX, HTML, ZIP, PDF болон татсан өгөгдлийн хавтаснуудыг git-д оруулахгүй.
+
+Доорх бүх командыг `base` conda орчинд ажиллуулна.
+
+## Хураангуй зураг
+
+### Улаанбаатарын үнийн зураг
+![Улаанбаатарын үнийн зураг](assets/ub_median_price_map.png)
+
+Энэ зураг нь Plotly-оор үүсгэсэн бодит HTML map-ээс экспортлогдсон бөгөөд өгөгдөлтэй бүсүүдийг л харуулахаар fit хийсэн.
+
+### Таамагласан эхний 10
+![Таамагласан эхний 10](assets/ub_top10_forecast.png)
+
+## Төсөл юу хийдэг вэ
+
+1. Unegui.mn-ийн зарын хуудсуудыг scrape хийж, шаардлагатай үед дэлгэрэнгүй хуудсуудыг нь татна.
+2. Үнэ, өрөөний тоо, талбай, зарын огноо, байршил, зарын холбоосыг parse хийнэ.
+3. Дүүрэг, бүс, өрөөний тоо, үл хөдлөхийн төрлөөр статистик тооцоолно.
+4. Орон нутгийн Unegui дундаж болон 1212.mn-ийн албан ёсны хүснэгтийг ашиглан forecast загвар байгуулна.
+5. Ирээдүйн өсөлт, шинэ байдал, одоогийн ₮/м², Сүхбаатарын талбай хүртэлх зайгаар заруудыг эрэмбэлнэ.
+6. Бодит зураг, ерөнхий газрын зураг, зар бүрийн тусдаа зурагтай хуваалцахад бэлэн топ-10 HTML report гаргана.
+
+## Репозиторын бүтэц
+
+- `scraper.py` - Unegui-ийн зарын хуудсуудыг crawl хийж, шаардлагатай бол дэлгэрэнгүй хуудсуудыг татан суурь CSV үүсгэнэ.
+- `listing_statistics.py` - бүс, дүүргийн статистик, ₮/м² heatmap болон median map үүсгэнэ.
+- `rank_listings.py` - заруудыг price/sqm, зай, өрөөний тоогоор цэвэрлэж, dedupe хийж, эрэмбэлнэ.
+- `forecast_listings.py` - 5 жилийн нэрлэсэн MNT-ийн forecast болон эцсийн ranked shortlist үүсгэнэ.
+- `export_top10_details.py` - зарын зургуудыг татаж, map болон бүрэн дэлгэрэнгүйтэй top-10 HTML report гаргана.
+- `build_readme_assets.py` - README-ийн нүүрэнд ашиглах PNG зургуудыг үүсгэнэ.
+- `make_share_package.py` - өмнөх shareable output-уудын legacy bundle builder.
+- `Stats/` - forecast алхамд ашиглах орон нутгийн 1212 хүснэгтүүд. Git-д tracked биш.
+- `share_results*/`, `top10_*report/`, мөн үүссэн CSV/XLSX/ZIP/PDF файлууд - build output. Git-д tracked биш.
+
+## Одоогийн шүүлтүүрийн дүрэм
+
+Full-scrape дээрх одоогийн ranking workflow дараах шүүлтүүрийг ашиглана:
+
+- Зөвхөн 3 өрөөтэй орон сууц.
+- Нийт үнэ 300,000,000 MNT-ээс 600,000,000 MNT-ийн хооронд.
+- Нийт талбай 70 м²-ээс их.
+- Гарчиг/байршлын дүүргийн илт зөрчилтэй мөрүүдийг ranking-аас хасна.
+- Ижил байршил, ижил хэмжээ, ижил өрөөний тоо, маш ойролцоо үнэтэй near-duplicate заруудыг нэг төлөөлөгч мөр болгон нэгтгэнэ.
+
+Forecast-ийн таамаглал:
+
+- Шинэ гэдэг нь 2021 оноос хойш баригдсан гэсэн үг.
+- Fair value per sqm нь Unegui-ийн local median болон 1212.mn-ийн дүүргийн дундажийн 50/50 холимог.
+- Forecast нь 5 жилийн нэрлэсэн MNT-ийн төсөөлөл.
+
+Одоогийн ranking weight:
+
+- Ирээдүйн өсөлт: 45%
+- Барилгын шинэ байдал: 20%
+- Одоогийн MNT/м²: 15%
+- Сүхбаатарын талбай хүртэлх зай: 20%
+
+## Гол output-ууд
+
+Full-scrape workflow дараах үндсэн файлуудыг үүсгэнэ:
+
+- `unegui_ub_all_pages_details.csv` - Unegui listing pages-ийн raw full scrape.
+- `unegui_ub_all_stats_apartment_price_per_sqm_heatmap.html` - listing түвшний бодит price per sqm утгад суурилсан heatmap.
+- `unegui_ub_all_stats_apartment_price_per_sqm_map.html` - бүсээрх median price per sqm map.
+- `unegui_ub_all_3room_filtered_forecast_all.csv` - forecast талбарууд болон хасалтын тайлбартай бүх мөр.
+- `unegui_ub_all_3room_filtered_forecast_ranked_apartments.csv` - dedupe хийгдсэн ranked жагсаалт.
+- `unegui_ub_all_3room_filtered_forecast_top10.csv` - эцсийн top 10 shortlist.
+- `Unegui_UB_all_3room_filtered_Forecast_Listings.xlsx` - хуваалцахад бэлэн workbook.
+- `top10_forecast_all_3room_filtered_report/top10_listings_report.html` - зураг, дэлгэрэнгүй, overview map, зар бүрийн map бүхий HTML report.
+- `Unegui_UB_all_3room_filtered_forecast_results_package.zip` - багцласан share package.
+
+## Дахин ажиллуулах workflow
+
+### 1. `base` орчныг идэвхжүүлж, dependency суулгах
+
+```bash
+conda activate base
+python -m pip install -r requirements.txt
+```
+
+### 2. Бүх хуудсыг scrape хийх
+
+`--all-pages` нь pagination-ийг автоматаар олно. `--details` нь зарын дэлгэрэнгүй хуудсуудыг татна. Энэ нь баяжуулсан анализад шаардлагатай.
+
+```bash
+python scraper.py --all-pages --details --workers 12 --output unegui_ub_all_pages_details.csv --analyze --analysis-prefix unegui_ub_all
+```
+
+### 3. Статистик болон map үүсгэх
+
+```bash
+python listing_statistics.py --input unegui_ub_all_pages_details.csv --output-prefix unegui_ub_all_stats
+```
+
+Энэ алхам нь бүс, дүүргийн статистик, өрөөний тооны хуваарилалт, үл хөдлөхийн төрлийн breakdown, apartment price-per-sqm heatmap, мөн median price-per-sqm map үүсгэнэ.
+
+### 4. Forecast ranking хийх
+
+Шаардлагатай 1212 хүснэгтүүдийг эхлээд `Stats/` дотор байрлуулна. Forecast алхам нь жилийн HPI хүснэгт болон `forecast_listings.py` ашигладаг дүүргийн үнийн хүснэгтийг хүлээнэ.
+
+```bash
+python forecast_listings.py --input unegui_ub_all_pages_details.csv --stats-dir Stats --output-prefix unegui_ub_all_3room_filtered
+```
+
+### 5. Top-10 report экспортлох
+
+```bash
+python export_top10_details.py --input unegui_ub_all_3room_filtered_forecast_ranked_apartments.csv --output-dir top10_forecast_all_3room_filtered_report --top-n 10 --workers 8
+```
+
+HTML report-д дараах зүйлс орно:
+
+- зарын хуудаснаас татсан бодит зураг,
+- parse хийсэн зарын дэлгэрэнгүй,
+- top 10-ийн нэг ерөнхий map,
+- зар бүрийн нэг тусдаа map,
+- анхны Unegui хуудсууд руу буцах холбоос.
+
+### 6. README-ийн зургуудыг үүсгэх
+
+```bash
+python build_readme_assets.py --map-html unegui_ub_all_stats_apartment_price_per_sqm_map.html
+```
+
+Хэрэв `base` орчинд Kaleido-д зориулсан Chrome бэлэн биш бол `--chrome-path /path/to/chrome` нэмнэ. Ингэснээр cover map нь HTML export-оос шууд render хийгдэнэ; эс бөгөөс schematic хувилбар руу fallback хийнэ.
+
+Энэ алхам дараах файлуудыг бичнэ:
+
+- `assets/ub_median_price_map.png`
+- `assets/ub_top10_forecast.png`
+
+## Өгөгдлийн тэмдэглэл
+
+- `price_per_sqm` нь зарын нийт үнэ болон талбайгаас үргэлж тооцогдоно.
+- `asking_to_fair_pct` нь `(asking price / estimated fair value) - 1`. Сөрөг утга нь зарын үнэ model-ийн estimate-ээс доогуур байгааг илтгэнэ.
+- Heatmap нь дүүргийн median биш, listing түвшний бодит price-per-sqm утгыг ашиглана.
+- Median map нь бүс эсвэл дүүрэг тус бүрийн median price per sqm-ийг ашиглана.
+- Зарим координатыг exact listing coordinate байхгүй үед бүс эсвэл дүүргийн lookup-аар нөхөж тооцно.
+- Forecast нь үнэлгээний хэрэгсэл болохоос албан ёсны appraisal биш.
+
+## Шаардлагатай зүйлс
+
+- Python 3.10 эсвэл түүнээс шинэ.
+- `pandas`
+- `requests`
+- `beautifulsoup4`
+- `plotly`
+- `kaleido`
+- `Pillow`
+
+Суулгах команд:
+
+```bash
+python -m pip install -r requirements.txt
 ```
