@@ -2,21 +2,19 @@
 
 This project scrapes public Unegui.mn apartment listings for Ulaanbaatar, cleans the listing data, maps price patterns, and ranks 3-room apartment listings using a 5-year nominal MNT forecast.
 
-The repository is meant to hold reproducible code and documentation. Raw scrapes, generated CSV/XLSX/HTML/ZIP/PDF files, downloaded photos, and user-provided 1212.mn tables are intentionally excluded from git.
+The repository is meant to hold reproducible code and documentation. Raw scrapes, generated CSV/XLSX/HTML/ZIP/PDF files, downloaded photos, and user-provided 1212.mn (Official Statistics Info) tables are intentionally excluded from git.
 
 ## Snapshot
 
 ### Ulaanbaatar Price Map
 ![Ulaanbaatar median price map](assets/ub_median_price_map.png)
 
-The README map is exported from the Plotly HTML output and fit to the regions that have listing data.
-
 ### Forecast Shortlist
 ![Forecast shortlist](assets/ub_top10_forecast.png)
 
 ## What It Does
 
-1. Scrapes listing pages and optional detail pages from Unegui.mn.
+1. Scrapes listing pages and optional detail pages from Unegui.mn (free public listings website).
 2. Extracts price, location, size, room count, listing date, links, and detail fields.
 3. Cleans suspicious values, computes price per sqm, and estimates distance to Sukhbaatar Square.
 4. Builds maps and statistics by region, district, room count, and property type.
@@ -52,13 +50,13 @@ Ranking weights:
 Install dependencies:
 
 ```bash
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 Scrape all listing pages and detail pages:
 
 ```bash
-python scraper.py --all-pages --details --workers 12 --output unegui_ub_all_pages_details.csv --analyze --analysis-prefix unegui_ub_all
+python scraper.py --all-pages --details --workers N --output unegui_ub_all_pages_details.csv --analyze --analysis-prefix unegui_ub_all
 ```
 
 Build statistics and maps:
@@ -84,8 +82,6 @@ Refresh the README figures:
 ```bash
 python build_readme_assets.py --map-html unegui_ub_all_stats_apartment_price_per_sqm_map.html
 ```
-
-If Kaleido cannot find Chrome, pass `--chrome-path /path/to/chrome`.
 
 ## Main Outputs
 
@@ -133,7 +129,7 @@ If Kaleido cannot find Chrome, pass `--chrome-path /path/to/chrome`.
 
 MIT License. See `LICENSE`.
 
-## Монгол Товч Танилцуулга
+## Монгол Товч Танилцуулга (AI orchuulga)
 
 Энэ төсөл нь Unegui.mn дээрх Улаанбаатар хотын орон сууцны заруудыг татаж, үнэ, талбай, өрөөний тоо, байршил, зарын огноо зэрэг мэдээллийг цэвэрлэн нэгтгэнэ. Дараа нь бүсийн үнийн зураг, статистик, 5 жилийн нэрлэсэн MNT таамаглал, мөн 3 өрөө байрны топ-10 богино жагсаалт үүсгэнэ.
 
@@ -168,13 +164,13 @@ GitHub репод зөвхөн код, README, шаардлагатай зура
 Шаардлагатай сангуудыг суулгах:
 
 ```bash
-python -m pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 Бүх зар болон дэлгэрэнгүй хуудсуудыг татах:
 
 ```bash
-python scraper.py --all-pages --details --workers 12 --output unegui_ub_all_pages_details.csv --analyze --analysis-prefix unegui_ub_all
+python scraper.py --all-pages --details --workers N --output unegui_ub_all_pages_details.csv --analyze --analysis-prefix unegui_ub_all
 ```
 
 Статистик болон газрын зураг үүсгэх:
