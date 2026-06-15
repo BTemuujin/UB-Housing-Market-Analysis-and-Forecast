@@ -6,9 +6,13 @@ The project is built for reproducible analysis rather than one-off spreadsheets.
 
 ## Snapshot
 
-| Ulaanbaatar price map | Forecast shortlist |
-| --- | --- |
-| ![Ulaanbaatar median price map](assets/ub_median_price_map.png) | ![Forecast shortlist](assets/ub_top10_forecast.png) |
+### Ulaanbaatar price map
+![Ulaanbaatar median price map](assets/ub_median_price_map.png)
+
+The cover map uses a schematic Ulaanbaatar underlay with median asking price per sqm by region.
+
+### Forecast shortlist
+![Forecast shortlist](assets/ub_top10_forecast.png)
 
 ## What This Project Does
 

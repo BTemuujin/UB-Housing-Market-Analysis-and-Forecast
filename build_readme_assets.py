@@ -160,6 +160,29 @@ def draw_panel_frame(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], 
     draw.rounded_rectangle(box, radius=28, fill=fill, outline="#dbe2ea", width=2)
 
 
+def convex_hull(points: list[tuple[int, int]]) -> list[tuple[int, int]]:
+    unique = sorted(set(points))
+    if len(unique) <= 1:
+        return unique
+
+    def cross(o: tuple[int, int], a: tuple[int, int], b: tuple[int, int]) -> int:
+        return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+
+    lower: list[tuple[int, int]] = []
+    for point in unique:
+        while len(lower) >= 2 and cross(lower[-2], lower[-1], point) <= 0:
+            lower.pop()
+        lower.append(point)
+
+    upper: list[tuple[int, int]] = []
+    for point in reversed(unique):
+        while len(upper) >= 2 and cross(upper[-2], upper[-1], point) <= 0:
+            upper.pop()
+        upper.append(point)
+
+    return lower[:-1] + upper[:-1]
+
+
 def draw_map_cover(region_df: pd.DataFrame, output_path: Path) -> None:
     df = region_df.dropna(subset=["latitude", "longitude", "median_price_per_sqm"]).copy()
     if df.empty:
@@ -210,6 +233,23 @@ def draw_map_cover(region_df: pd.DataFrame, output_path: Path) -> None:
         x = plot_left + (lon - lon_min) / (lon_max - lon_min) * (plot_right - plot_left)
         y = plot_bottom - (lat - lat_min) / (lat_max - lat_min) * (plot_bottom - plot_top)
         return int(round(x)), int(round(y))
+
+    point_pixels = [transform(float(row["longitude"]), float(row["latitude"])) for _, row in df.iterrows()]
+    hull = convex_hull(point_pixels)
+
+    if len(hull) >= 3:
+        draw.polygon(hull, fill="#eef2f7", outline="#cbd5e1")
+        draw.line(hull + [hull[0]], fill="#cbd5e1", width=2)
+
+    draw.text((plot_left + 24, plot_top + 14), "Ulaanbaatar", font=FONT_HEAD, fill="#334155")
+    draw.text((plot_left + 24, plot_top + 44), "schematic city underlay", font=FONT_SMALL, fill="#64748b")
+
+    if len(hull) >= 4:
+        ridge_color = "#d6dee8"
+        for offset in (0.22, 0.44, 0.66):
+            start = hull[int(len(hull) * offset) % len(hull)]
+            end = hull[int(len(hull) * (offset + 0.27)) % len(hull)]
+            draw.line((start[0], start[1], end[0], end[1]), fill=ridge_color, width=2)
 
     price_min = float(df["median_price_per_sqm"].min())
     price_max = float(df["median_price_per_sqm"].max())
