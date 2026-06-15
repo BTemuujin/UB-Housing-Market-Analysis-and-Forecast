@@ -4,12 +4,14 @@ This repository scrapes public Unegui.mn apartment listings for Ulaanbaatar, nor
 
 The project is built for reproducible analysis rather than one-off spreadsheets. The checked-in files are the scripts and documentation. Generated CSV, XLSX, HTML, ZIP, PDF, and download folders are intentionally excluded from version control.
 
+All commands below assume the `base` conda environment is active.
+
 ## Snapshot
 
 ### Ulaanbaatar price map
 ![Ulaanbaatar median price map](assets/ub_median_price_map.png)
 
-The cover map uses a schematic Ulaanbaatar underlay with median asking price per sqm by region.
+The cover map is exported from the real Plotly HTML map output and shows median asking price per sqm by region on top of the actual Ulaanbaatar map.
 
 ### Forecast shortlist
 ![Forecast shortlist](assets/ub_top10_forecast.png)
@@ -74,10 +76,11 @@ The current full-scrape workflow produces these main files:
 
 ## Reproducible Workflow
 
-### 1. Install dependencies
+### 1. Activate `base` and install dependencies
 
 ```bash
-python3 -m pip install -r requirements.txt
+conda activate base
+python -m pip install -r requirements.txt
 ```
 
 ### 2. Scrape all pages
@@ -85,13 +88,13 @@ python3 -m pip install -r requirements.txt
 Use `--all-pages` to discover pagination automatically. Add `--details` to fetch the listing detail pages, which is required for the richer analysis outputs.
 
 ```bash
-python3 scraper.py --all-pages --details --workers 12 --output unegui_ub_all_pages_details.csv --analyze --analysis-prefix unegui_ub_all
+python scraper.py --all-pages --details --workers 12 --output unegui_ub_all_pages_details.csv --analyze --analysis-prefix unegui_ub_all
 ```
 
 ### 3. Build statistics and maps
 
 ```bash
-python3 listing_statistics.py --input unegui_ub_all_pages_details.csv --output-prefix unegui_ub_all_stats
+python listing_statistics.py --input unegui_ub_all_pages_details.csv --output-prefix unegui_ub_all_stats
 ```
 
 This produces the region and district statistics, room counts, property-type breakdowns, the apartment price-per-sqm heatmap, and the median price-per-sqm map.
@@ -101,13 +104,13 @@ This produces the region and district statistics, room counts, property-type bre
 Place the required 1212 tables in `Stats/` first. The forecast step expects the annual HPI table and the district price table used by `forecast_listings.py`.
 
 ```bash
-python3 forecast_listings.py --input unegui_ub_all_pages_details.csv --stats-dir Stats --output-prefix unegui_ub_all_3room_filtered
+python forecast_listings.py --input unegui_ub_all_pages_details.csv --stats-dir Stats --output-prefix unegui_ub_all_3room_filtered
 ```
 
 ### 5. Export the top-10 report
 
 ```bash
-python3 export_top10_details.py --input unegui_ub_all_3room_filtered_forecast_ranked_apartments.csv --output-dir top10_forecast_all_3room_filtered_report --top-n 10 --workers 8
+python export_top10_details.py --input unegui_ub_all_3room_filtered_forecast_ranked_apartments.csv --output-dir top10_forecast_all_3room_filtered_report --top-n 10 --workers 8
 ```
 
 The HTML report includes:
@@ -121,8 +124,10 @@ The HTML report includes:
 ### 6. Build the README figures
 
 ```bash
-python3 build_readme_assets.py
+python build_readme_assets.py --map-html unegui_ub_all_stats_apartment_price_per_sqm_map.html
 ```
+
+If Chrome is not already available to Kaleido in your `base` environment, pass `--chrome-path /path/to/chrome` so the map cover is rendered from the HTML export instead of falling back to the schematic version.
 
 This writes:
 
@@ -145,6 +150,7 @@ This writes:
 - `requests`
 - `beautifulsoup4`
 - `plotly`
+- `kaleido`
 - `Pillow`
 
 Install them with:

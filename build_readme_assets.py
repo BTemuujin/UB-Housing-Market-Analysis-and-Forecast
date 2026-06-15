@@ -1,17 +1,25 @@
 from __future__ import annotations
 
 import argparse
+import json
 import math
+import os
 from pathlib import Path
 from typing import Iterable
 
 import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 
+try:
+    import plotly.graph_objects as go
+except Exception:  # pragma: no cover - optional dependency for local README asset generation
+    go = None
+
 
 ROOT = Path(__file__).resolve().parent
 DEFAULT_REGION_CSV = ROOT / "unegui_ub_all_stats_apartment_region_stats.csv"
 DEFAULT_TOP10_CSV = ROOT / "unegui_ub_all_3room_filtered_forecast_top10.csv"
+DEFAULT_MAP_HTML = ROOT / "unegui_ub_all_stats_apartment_price_per_sqm_map.html"
 DEFAULT_OUT_DIR = ROOT / "assets"
 
 
@@ -160,6 +168,83 @@ def draw_panel_frame(draw: ImageDraw.ImageDraw, box: tuple[int, int, int, int], 
     draw.rounded_rectangle(box, radius=28, fill=fill, outline="#dbe2ea", width=2)
 
 
+def split_plotly_newplot_args(html_text: str) -> list[str]:
+    marker = "Plotly.newPlot("
+    start = html_text.find(marker)
+    if start == -1:
+        raise ValueError("Could not find Plotly.newPlot call in HTML file.")
+
+    segment = html_text[start + len(marker) :]
+    args: list[str] = []
+    current: list[str] = []
+    depth = 0
+    string_delim: str | None = None
+    escape = False
+
+    for ch in segment:
+        if string_delim is not None:
+            current.append(ch)
+            if escape:
+                escape = False
+            elif ch == "\\":
+                escape = True
+            elif ch == string_delim:
+                string_delim = None
+            continue
+
+        if ch in ('"', "'"):
+            string_delim = ch
+            current.append(ch)
+            continue
+        if ch in "[{(":
+            depth += 1
+            current.append(ch)
+            continue
+        if ch in "]})":
+            depth -= 1
+            current.append(ch)
+            if depth == 0 and ch == ")":
+                break
+            continue
+        if ch == "," and depth == 0:
+            args.append("".join(current).strip())
+            current = []
+            continue
+        current.append(ch)
+
+    if current:
+        args.append("".join(current).strip())
+
+    return args
+
+
+def render_actual_html_map_cover(
+    html_path: Path,
+    output_path: Path,
+    chrome_path: str | None = None,
+) -> None:
+    if go is None:
+        raise RuntimeError("plotly is not available")
+    if not html_path.exists():
+        raise FileNotFoundError(html_path)
+
+    html_text = html_path.read_text(encoding="utf-8")
+    args = split_plotly_newplot_args(html_text)
+    if len(args) < 3:
+        raise ValueError("Could not parse Plotly figure JSON from HTML.")
+
+    data = json.loads(args[1])
+    layout = json.loads(args[2].rstrip(")"))
+
+    if chrome_path:
+        chrome = Path(chrome_path)
+        chrome_dir = chrome if chrome.is_dir() else chrome.parent
+        os.environ["PATH"] = f"{chrome_dir}{os.pathsep}{os.environ.get('PATH', '')}"
+
+    fig = go.Figure(data=data, layout=layout)
+    fig.write_image(str(output_path), width=1600, height=1000, scale=1)
+
+
 def convex_hull(points: list[tuple[int, int]]) -> list[tuple[int, int]]:
     unique = sorted(set(points))
     if len(unique) <= 1:
@@ -183,7 +268,7 @@ def convex_hull(points: list[tuple[int, int]]) -> list[tuple[int, int]]:
     return lower[:-1] + upper[:-1]
 
 
-def draw_map_cover(region_df: pd.DataFrame, output_path: Path) -> None:
+def draw_schematic_map_cover(region_df: pd.DataFrame, output_path: Path) -> None:
     df = region_df.dropna(subset=["latitude", "longitude", "median_price_per_sqm"]).copy()
     if df.empty:
         raise SystemExit("Region stats file has no usable coordinates.")
@@ -312,6 +397,16 @@ def draw_map_cover(region_df: pd.DataFrame, output_path: Path) -> None:
     image.save(output_path)
 
 
+def draw_map_cover(region_df: pd.DataFrame, output_path: Path, map_html_path: Path, chrome_path: str | None = None) -> None:
+    try:
+        render_actual_html_map_cover(map_html_path, output_path, chrome_path=chrome_path)
+        return
+    except Exception as exc:
+        print(f"Falling back to schematic README map cover: {exc}")
+
+    draw_schematic_map_cover(region_df, output_path)
+
+
 def draw_top10_cover(top10_df: pd.DataFrame, output_path: Path) -> None:
     df = top10_df.sort_values("forecast_rank").copy()
     if df.empty:
@@ -377,7 +472,7 @@ def draw_top10_cover(top10_df: pd.DataFrame, output_path: Path) -> None:
     image.save(output_path)
 
 
-def build_assets(region_csv: Path, top10_csv: Path, out_dir: Path) -> tuple[Path, Path]:
+def build_assets(region_csv: Path, top10_csv: Path, map_html_path: Path, out_dir: Path, chrome_path: str | None = None) -> tuple[Path, Path]:
     if not region_csv.exists():
         raise SystemExit(f"Region stats CSV not found: {region_csv}")
     if not top10_csv.exists():
@@ -388,7 +483,7 @@ def build_assets(region_csv: Path, top10_csv: Path, out_dir: Path) -> tuple[Path
 
     map_path = out_dir / "ub_median_price_map.png"
     top10_path = out_dir / "ub_top10_forecast.png"
-    draw_map_cover(region_df, map_path)
+    draw_map_cover(region_df, map_path, map_html_path, chrome_path=chrome_path)
     draw_top10_cover(top10_df, top10_path)
     return map_path, top10_path
 
@@ -397,13 +492,21 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Build PNG figures for the repository README.")
     parser.add_argument("--region-csv", default=str(DEFAULT_REGION_CSV), help="Full-scrape region stats CSV.")
     parser.add_argument("--top10-csv", default=str(DEFAULT_TOP10_CSV), help="Top 10 forecast CSV.")
+    parser.add_argument("--map-html", default=str(DEFAULT_MAP_HTML), help="HTML map output to snapshot for the README.")
+    parser.add_argument("--chrome-path", default="", help="Optional path to a Chrome executable or its parent directory.")
     parser.add_argument("--out-dir", default=str(DEFAULT_OUT_DIR), help="Output directory for the PNG assets.")
     return parser
 
 
 def main() -> None:
     args = build_parser().parse_args()
-    build_assets(Path(args.region_csv), Path(args.top10_csv), Path(args.out_dir))
+    build_assets(
+        Path(args.region_csv),
+        Path(args.top10_csv),
+        Path(args.map_html),
+        Path(args.out_dir),
+        chrome_path=args.chrome_path or None,
+    )
 
 
 if __name__ == "__main__":

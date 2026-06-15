@@ -21,6 +21,8 @@ Thumbs.db
 # Workspace-specific metadata
 .codex/
 .agents/
+.chrome/
+.chrome2/
 
 # Local data and analysis outputs
 Stats/
@@ -39,3 +41,4 @@ top10_forecast_all_3room_filtered_report/
 *.html
 *_README.txt
 *_methodology.txt
+assets/test_*.png
